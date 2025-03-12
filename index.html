@@ -87,3 +87,82 @@
             <div class="control-group">
                 <h2>LED Control</h2>
                 <button onclick="sendCommand('led', 'on')">Turn LED ON</button>
+                <button class="off" onclick="sendCommand('led', 'off')">Turn LED OFF</button>
+            </div>
+            
+            <div class="control-group">
+                <h2>Sensor Readings</h2>
+                <p>Temperature: <span id="temperature">--</span> °C</p>
+                <p>Humidity: <span id="humidity">--</span> %</p>
+                <button onclick="readSensors()">Refresh Readings</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let espAddress = "http://192.168.1.100"; // Default IP
+        
+        function connectToESP() {
+            // Get IP address from input field
+            const ipInput = document.getElementById("ipAddress");
+            espAddress = "http://" + ipInput.value;
+            
+            // Test connection
+            fetch(`${espAddress}/status`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("status").textContent = "Connected";
+                    document.getElementById("status").className = "status connected";
+                    console.log("ESP32 connected:", data);
+                    // Read sensor data after successful connection
+                    readSensors();
+                })
+                .catch(error => {
+                    document.getElementById("status").textContent = "Failed to connect";
+                    document.getElementById("status").className = "status disconnected";
+                    console.error("Connection error:", error);
+                });
+        }
+        
+        function sendCommand(device, action) {
+            fetch(`${espAddress}/control?device=${device}&action=${action}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Command sent successfully:", data);
+                })
+                .catch(error => {
+                    console.error("Error sending command:", error);
+                    alert("Error sending command. Make sure ESP32 is connected.");
+                });
+        }
+        
+        function readSensors() {
+            fetch(`${espAddress}/sensors`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("temperature").textContent = data.temperature || "--";
+                    document.getElementById("humidity").textContent = data.humidity || "--";
+                    console.log("Sensor data received:", data);
+                })
+                .catch(error => {
+                    console.error("Error reading sensors:", error);
+                });
+        }
+    </script>
+</body>
+</html>
