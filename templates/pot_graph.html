@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potentiometer Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function updateGraph(data) {
+            const ctx = document.getElementById('potGraph').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.timestamps,  // Time in minutes
+                    datasets: [{
+                        label: 'Potentiometer Value',
+                        data: data.values,  // Potentiometer values
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Time (Minutes)'
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 1100,
+                            title: {
+                                display: true,
+                                text: 'Potentiometer Value'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch data and update the graph
+        function fetchDataAndUpdateGraph() {
+            fetch('/get_pot_data')
+                .then(response => response.json())
+                .then(data => {
+                    updateGraph(data);
+                });
+        }
+
+        // Update graph every minute
+        setInterval(fetchDataAndUpdateGraph, 60000);
+        window.onload = fetchDataAndUpdateGraph;
+    </script>
+</head>
+<body>
+    <h2>Potentiometer Graph</h2>
+    <canvas id="potGraph" width="400" height="200"></canvas>
+    <br><br>
+    <button onclick="window.location.href='/'">Back to Home</button>
+</body>
+</html>
